@@ -30,6 +30,13 @@
     I2C ADDRESS/BITS
     -----------------------------------------------------------------------*/
     #define BME280_ADDRESS                (0x77)
+    #define CONFIG_TSTANDBY               (0)
+    #define CONFIG_FILTER                 (0)
+    #define CONFIG_TEMPOVERSAMPLE         (0)
+    #define CONFIG_PRESSOVERSAMPLE        (0)
+    #define CONFIG_HUMIDOVERSAMPLE        (0)
+    #define CONFIG_RUNMODE                (3)
+    
 /*=========================================================================*/
 
 /*=========================================================================
@@ -130,7 +137,14 @@ class Adafruit_BME280
     Adafruit_BME280(int8_t cspin);
     Adafruit_BME280(int8_t cspin, int8_t mosipin, int8_t misopin, int8_t sckpin);
 
-    bool  begin(uint8_t addr = BME280_ADDRESS);
+    bool  begin(uint8_t addr = BME280_ADDRESS,
+    uint8_t configTstandby = CONFIG_TSTANDBY,
+    uint8_t configFilter = CONFIG_FILTER,
+    uint8_t configTempOverSample = CONFIG_TEMPOVERSAMPLE,
+    uint8_t configPressOverSample = CONFIG_PRESSOVERSAMPLE,
+    uint8_t configHumidOverSample = CONFIG_HUMIDOVERSAMPLE,
+    uint8_t configRunMode = CONFIG_RUNMODE);
+
     float readTemperature(void);
     float readPressure(void);
     float readHumidity(void);
@@ -153,6 +167,13 @@ class Adafruit_BME280
     uint8_t   _i2caddr;
     int32_t   _sensorID;
     int32_t t_fine;
+    
+    uint8_t _configTstandby;
+    uint8_t _configFilter;
+    uint8_t _configTempOverSample;
+    uint8_t _configPressOverSample;
+    uint8_t _configHumidOverSample;
+    uint8_t _configRunMode;
 
     int8_t _cs, _mosi, _miso, _sck;
 
