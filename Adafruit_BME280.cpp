@@ -38,9 +38,17 @@ Adafruit_BME280::Adafruit_BME280(int8_t cspin, int8_t mosipin, int8_t misopin, i
 { }
 
 
-bool Adafruit_BME280::begin(uint8_t a) {
+bool Adafruit_BME280::begin(uint8_t a, uint8_t ts, uint8_t f, uint8_t to, uint8_t po, uint8_t ho, uint8_t rm) {
   _i2caddr = a;
-
+  _configTstandby = ts;
+  _configFilter = f;
+  _configTempOverSample = to;
+  _configPressOverSample = po;
+  _configHumidOverSample = ho;
+  _configRunMode = rm;
+  
+  uint8_t dataToWrite = 0;  //Temporary variable
+  
   if (_cs == -1) {
     // i2c
     Wire.begin();
@@ -61,13 +69,32 @@ bool Adafruit_BME280::begin(uint8_t a) {
 
   if (read8(BME280_REGISTER_CHIPID) != 0x60)
     return false;
+  
+  //config will only be writeable in sleep mode, so first insure that.
+  write8(BME280_REGISTER_CONTROL, 0x00);
 
   readCoefficients();
+  
+  //Set the config word
+  dataToWrite = (_configTstandby << 0x5) & 0xE0;
+  dataToWrite |= (_configFilter << 0x02) & 0x1C;
+  write8(BME280_REGISTER_CONFIG, dataToWrite);
+  
+  
+  //Set ctrl_hum first, then ctrl_meas to activate ctrl_hum
+  dataToWrite = _configHumidOverSample & 0x07; //all other bits can be ignored
+  write8(BME280_REGISTER_CONTROLHUMID, dataToWrite);
 
-  //Set before CONTROL_meas (DS 5.4.3)
-  write8(BME280_REGISTER_CONTROLHUMID, 0x05); //16x oversampling 
+  //set ctrl_meas
+  //First, set temp oversampling
+  dataToWrite = (_configTempOverSample << 0x5) & 0xE0;
+  //Next, pressure oversampling
+  dataToWrite |= (_configPressOverSample << 0x02) & 0x1C;
+  //Last, set mode
+  dataToWrite |= (_configRunMode) & 0x03;
+  //Load the byte
+  write8(BME280_REGISTER_CONTROL, dataToWrite);
 
-  write8(BME280_REGISTER_CONTROL, 0xB7); // 16x ovesampling, normal mode
   return true;
 }
 
